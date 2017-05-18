@@ -1,0 +1,15 @@
+{
+    "name": "pyroclast-js",
+    "version": "0.1.0",
+    "description": "JavaScript client for Pyroclast.",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "Distributed Masonry",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/onyx-platform/pyroclast-js.git"
+    },
+    "license": "ISC"
+}

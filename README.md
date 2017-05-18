@@ -9,8 +9,8 @@ var PyroclastClient = require("pyroclast");
 
 var client = new PyroclastClient({
     userToken: "<your user token>",
-    apiToken: "<your api token>
-    endpoint: "<pyroclast endpoint>
+    apiToken: "<your api token>",
+    endpoint: "<pyroclast endpoint>",
     topicId: "<your topic id>",
     format: "json"
 });

@@ -3,7 +3,7 @@ import PyroclastClient from '../src/pyroclast';
 
 describe('PyroclastClient', function() {
     const writeApiKey = 'key';
-    const endpoint = 'http://noop';
+    const endpoint = 'http://no.op';
     
     it('fails to construct when required options are not specified.', function() {
         expect(() => new PyroclastClient({})).to.throwError();
@@ -21,7 +21,7 @@ describe('PyroclastClient', function() {
             case 200:
                 return resolve({
                     status: 200,
-                    json: () => { return {created: true};}
+                    json: () => { return {baz: 'quux', url};}
                 });
             case 400:
             case 401:
@@ -49,7 +49,8 @@ describe('PyroclastClient', function() {
         const c = new PyroclastClient({writeApiKey, endpoint, fetchImpl: mockFetch});
         c.sendEvent('atopic', {foo: 'bar', mocking: 200})
             .then((result) => {
-                expect(result.created).to.be.ok();
+                expect(result.url).to.equal("http://no.op/api/v1/topic/atopic/event")
+                expect(result.baz).to.equal('quux');
                 done();
             })
             .catch(done);

@@ -44,7 +44,7 @@ function defaultFetch() {
     throw new Error('No fetch implmentation found. Provide support via polyfill or by supplying the `fetchImpl` option.');
 }
 
-export default class PyroclastClient {
+export class PyroclastClient {
     constructor({writeApiKey,
                  endpoint,
                  version=1,

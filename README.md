@@ -2,14 +2,20 @@
 
 Browser + Node.js support for sending events to a Pyroclast topic.
 
+## Installation
+
+```bash
+npm install --save pyroclast
+```
+
 ## Usage
 
 First, define a configuration.
 
 ```javascript
-import PyroclastClient from 'pyroclast';
+const pyroclast = require('pyroclast');
 
-const client = new PyroclastClient({
+const client = new pyroclast.PyroclastClient({
     writeApiKey: "<your api token>",
     endpoint: "<pyroclast endpoint>",
     topicId: "<your topic id>"

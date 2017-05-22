@@ -29,8 +29,8 @@ client.sendEvents(cb, [{"event-type": "page-visit", "page": "/home", "timestamp"
 ### Send a batch of events asynchronously
 
 ```javascript
-var cb = function(result) {
-  console.log(result);
+var cb = function(results) {
+  console.log(results);
 }
 
 client.sendEvents(cb, [{"event-type": "page-visit", "page": "/home", "timestamp": 1495072835000},

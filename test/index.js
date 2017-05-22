@@ -1,5 +1,5 @@
 import expect from 'expect.js';
-import PyroclastClient from '../src/pyroclast';
+import {PyroclastClient} from '../lib/pyroclast';
 
 describe('PyroclastClient', function() {
     const writeApiKey = 'key';

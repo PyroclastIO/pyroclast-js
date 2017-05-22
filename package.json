@@ -1,10 +1,11 @@
 {
   "name": "pyroclast-js",
   "version": "0.1.0",
-  "description": "JavaScript client for Pyroclast.",
-  "main": "index.js",
+  "description": "Browser + Node.js support for sending events to a Pyroclast topic.",
+  "main": "lib/pyroclast.js",
   "scripts": {
-    "test": "mocha --compilers js:babel-register"
+    "test": "mocha --compilers js:babel-register",
+    "build": "babel src/pyroclast.js -o lib/pyroclast.js"
   },
   "author": "Distributed Masonry",
   "repository": {

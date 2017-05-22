@@ -8,8 +8,7 @@ First, define a configuration.
 
 ```javascript
 var client = new PyroclastClient({
-    userToken: "<your user token>",
-    apiToken: "<your api token>",
+    writeApiKey: "<your api token>",
     endpoint: "<pyroclast endpoint>",
     topicId: "<your topic id>",
     format: "json"

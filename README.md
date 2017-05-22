@@ -4,9 +4,9 @@ A JavaScript Node module for sending events to a Pyroclast topic.
 
 ## Usage
 
-```javascript
-var PyroclastClient = require("pyroclast");
+First, define a configuration.
 
+```javascript
 var client = new PyroclastClient({
     userToken: "<your user token>",
     apiToken: "<your api token>",
@@ -14,8 +14,28 @@ var client = new PyroclastClient({
     topicId: "<your topic id>",
     format: "json"
 });
+```
 
-client.sendEvent({"event-type": "page-visit", "page": "/home", "timestamp": 1495072835000});
+### Send one event asynchronously
+
+```javascript
+var cb = function(result) {
+  console.log(result);
+}
+
+client.sendEvents(cb, [{"event-type": "page-visit", "page": "/home", "timestamp": 1495072835000}]);
+```
+
+### Send a batch of events asynchronously
+
+```javascript
+var cb = function(result) {
+  console.log(result);
+}
+
+client.sendEvents(cb, [{"event-type": "page-visit", "page": "/home", "timestamp": 1495072835000},
+                       {"event-type": "page-visit", "page": "/home", "timestamp": 1495072835000},
+                       {"event-type": "page-visit", "page": "/home", "timestamp": 1495072835000}]);
 ```
 
 ## License

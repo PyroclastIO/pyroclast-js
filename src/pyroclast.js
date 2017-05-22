@@ -1,63 +1,70 @@
-function PyroclastClient(config) {
-    this.config = {
-        userToken: config.userToken,
-        writeApiKey: config.writeApiKey,
-        endpoint: config.endpoint,
-        topicId: config.topicId,
-        format: config.format
-    };
-}
+function send(client, topicId, payloadKind, payload) {
+    const url = `${client.endpoint}/api/v${client.version}/topic/${topicId}/${payloadKind}`;
 
-function processResponse(xhr) {
-    switch (xhr.status) {
-    case 200:
-        return JSON.parse(xhr.response);
-
-    case 400:
-        return {"created": false, "reason": "Event data was malformed"};
-
-    case 401:
-        return {"created": false, "reason": "API key unauthorized to perform this action"};
-
-    default:
-        return {"created": false, "reason": "unknown", "response": xhr};
-    }
-}
-
-PyroclastClient.prototype.sendEvent = function(callback, event) {
-    var xhr = new XMLHttpRequest();
-    var url = this.config.endpoint + "/api/v1/topic/" + this.config.topicId + "/event";
-    xhr.open("POST", url, true);
-
-    xhr.setRequestHeader("Authorization", this.config.writeApiKey);
-    xhr.setRequestHeader("Content-Type", "application/json");
-
-    xhr.onreadystatechange = function()
-    {
-        if (xhr.readyState == 4) {
-            callback(processResponse(xhr));
+    return client.fetchImpl(url, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+        headers: {
+            'Authorization': client.writeApiKey,
+            'Content-Type': 'application/json'
+        },
+        credentials: client.credentialsMode
+    }).then((res) => {
+        let msg;
+        switch(res.status) {
+        case 200:
+            return res.json();
+        case 400:
+            msg = 'Malformed event data';
+            break;
+        case 401:
+            msg = 'API key is not authorized to perform this action';
+            break;
+        default:
+            msg = res.statusText || 'unknown';
         }
-    }
-    
-    xhr.send(JSON.stringify(event));
+
+        let err = new Error(msg);
+        err.status = res.status;
+        err.responseHeaders = res.headers;
+        throw err;
+    });
 }
 
-PyroclastClient.prototype.sendEvents = function(callback, events) {
-    var xhr = new XMLHttpRequest();
-    var url = this.config.endpoint + "/api/v1/topic/" + this.config.topicId + "/events";
-    xhr.open("POST", url, true);
+function defaultFetch() {
+    if('undefined' !== typeof process && 
+       Object.prototype.toString.call(process) === '[object process]') {
+        return require('node-fetch');
+    }
 
-    xhr.setRequestHeader("Authorization", this.config.writeApiKey);
-    xhr.setRequestHeader("Content-Type", "application/json");
+    if(window.hasOwnProperty('fetch')) {
+        return window.fetch; 
+    }
 
-    xhr.onreadystatechange = function()
-    {
-        if (xhr.readyState == 4) {
-            callback(processResponse(xhr));
+    throw new Error('No fetch implmentation found. Provide support via polyfill or by supplying the `fetchImpl` option.');
+}
+
+export default class PyroclastClient {
+    constructor({writeApiKey,
+                 endpoint,
+                 version=1,
+                 credentialsMode='include',
+                 fetchImpl=defaultFetch()}) {
+        if(!writeApiKey || !endpoint) {
+            throw new Error('Required configuration not specified.');
         }
+        
+        this.writeApiKey = writeApiKey;
+        this.endpoint = endpoint;
+        this.version = version;
+        this.fetchImpl = fetchImpl; 
     }
 
-    xhr.send(JSON.stringify(events));
-}
+    sendEvent(topicId, event) {
+        return send(this, topicId, 'event', event);
+    }
 
-module.exports = PyroclastClient;
+    sendEvents(topicId, events) {
+        return send(this, topicId, 'events', events);
+    }
+}

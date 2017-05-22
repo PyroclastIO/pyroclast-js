@@ -1,15 +1,26 @@
 {
-    "name": "pyroclast-js",
-    "version": "0.1.0",
-    "description": "JavaScript client for Pyroclast.",
-    "main": "index.js",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "author": "Distributed Masonry",
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/onyx-platform/pyroclast-js.git"
-    },
-    "license": "ISC"
+  "name": "pyroclast-js",
+  "version": "0.1.0",
+  "description": "JavaScript client for Pyroclast.",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --compilers js:babel-register"
+  },
+  "author": "Distributed Masonry",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/onyx-platform/pyroclast-js.git"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-core": "^6.24.1",
+    "babel-preset-env": "^1.5.0",
+    "babel-register": "^6.24.1",
+    "expect.js": "^0.3.1",
+    "mocha": "^3.4.1"
+  },
+  "dependencies": {
+    "node-fetch": "^1.6.3"
+  }
 }

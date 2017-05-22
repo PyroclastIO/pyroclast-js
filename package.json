@@ -1,5 +1,5 @@
 {
-  "name": "pyroclast-js",
+  "name": "pyroclast",
   "version": "0.1.0",
   "description": "Browser + Node.js support for sending events to a Pyroclast topic.",
   "main": "lib/pyroclast.js",

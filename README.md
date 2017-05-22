@@ -2,6 +2,12 @@
 
 Browser + Node.js support for sending events to a Pyroclast topic.
 
+## Installation
+
+```bash
+npm install --save pyroclast
+```
+
 ## Usage
 
 First, define a configuration.

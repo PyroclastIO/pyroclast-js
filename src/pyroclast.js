@@ -84,7 +84,7 @@ export class PyroclastTopicClient {
                  version=1,
                  credentialsMode='include',
                  fetchImpl=defaultFetch()}) {
-        if(!writeApiKey || !topicID || !endpoint) {
+        if(!writeApiKey || !topicId || !endpoint) {
             throw new Error('Required configuration not specified.');
         }
         

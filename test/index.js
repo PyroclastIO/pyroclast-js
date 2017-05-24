@@ -1,17 +1,17 @@
 import expect from 'expect.js';
-import {PyroclastClient} from '../lib/pyroclast';
+import {PyroclastTopicClient} from '../src/pyroclast';
 
-describe('PyroclastClient', function() {
+describe('PyroclastTopicClient', function() {
     const writeApiKey = 'key';
-    const topicId = "aTopic";
+    const topicId = "atopic";
     const endpoint = 'http://no.op';
     
     it('fails to construct when required options are not specified.', function() {
-        expect(() => new PyroclastClient({})).to.throwError();
+        expect(() => new PyroclastTopicClient({})).to.throwError();
     });
     
     it('bootstraps a default fetch impl under Node', function() {
-        const c = new PyroclastClient({writeApiKey, topicId, endpoint});
+        const c = new PyroclastTopicClient({writeApiKey, topicId, endpoint});
         expect(c.fetchImpl).to.be.ok();
     });
 
@@ -42,12 +42,12 @@ describe('PyroclastClient', function() {
     mockFetch.custom = true;
 
     it('uses user-specified fetch implementation when provided.', function() {
-        const c = new PyroclastClient({writeApiKey, topicId, endpoint, fetchImpl: mockFetch});
+        const c = new PyroclastTopicClient({writeApiKey, topicId, endpoint, fetchImpl: mockFetch});
         expect(c.fetchImpl.custom).to.be.ok();
     });
 
     it('should promise parsed json from successful requests', function(done) {
-        const c = new PyroclastClient({writeApiKey, endpoint, fetchImpl: mockFetch});
+        const c = new PyroclastTopicClient({writeApiKey, topicId, endpoint, fetchImpl: mockFetch});
         c.sendEvent({foo: 'bar', mocking: 200})
             .then((result) => {
                 expect(result.url).to.equal("http://no.op/api/v1/topic/atopic/event")
@@ -58,7 +58,7 @@ describe('PyroclastClient', function() {
     });
 
     it('should reject on 400s', function(done) {
-        const c = new PyroclastClient({writeApiKey, endpoint, fetchImpl: mockFetch});
+        const c = new PyroclastTopicClient({writeApiKey, topicId, endpoint, fetchImpl: mockFetch});
         c.sendEvent({foo: 'bar', mocking: 400})
             .then((result) => {
                 done('Not expected');
@@ -70,7 +70,7 @@ describe('PyroclastClient', function() {
     });
 
     it('should reject on network error', function(done) {
-        const c = new PyroclastClient({writeApiKey, endpoint, fetchImpl: mockFetch});
+        const c = new PyroclastTopicClient({writeApiKey, topicId, endpoint, fetchImpl: mockFetch});
         c.sendEvent({foo: 'bar', mocking: null})
             .then((result) => {
                 done('Not expected');

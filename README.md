@@ -17,7 +17,7 @@ const pyroclast = require('pyroclast');
 
 const client = new pyroclast.PyroclastClient({
     writeApiKey: "<your api token>",
-    topicId": "<your topic ID>",
+    topicId: "<your topic ID>",
     endpoint: "<pyroclast endpoint>"
 });
 ```

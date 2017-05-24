@@ -31,14 +31,14 @@ class BaseClient {
     }
 }
 
-function write(client, payloadKind, payload) {
-    const url = `${client.options.endpoint}/api/v1/topic/${client.options.topicId}/${payloadKind}`;
+function write(client, path, payload) {
+    const url = `${client.options.endpoint}/api/v1/topic/${client.options.topicId}${path}`;
 
     return client.fetchImpl(url, {
         method: 'POST',
         body: JSON.stringify(payload),
         headers: {
-            'Authorization': client.writeApiKey,
+            'Authorization': client.options.writeApiKey,
             'Content-Type': 'application/json'
         },
         credentials: client.credentialsMode
@@ -64,78 +64,65 @@ function write(client, payloadKind, payload) {
     });
 }
 
-function readServiceAggregate(client, urlF) {
-    const url = urlF(`${client.endpoint}/api/v1/service/${client.serviceId}`);
-
-    return client.fetchImpl(url, {
-        method: 'GET',
-        headers: {
-            'Authorization': client.readApiKey,
-        },
-        credentials: client.credentialsMode
-    }).then((res) => {
-        let msg;
-        switch(res.status) {
-        case 200:
-            var json = res.json();
-            return {"success": true, "aggregates": json};
-        case 401:
-            msg = 'API key is not authorized to perform this action';
-            break;
-        case 404:
-            msg = 'Aggregate not found';
-            break;
-        default:
-            msg = res.statusText || 'unknown';
-        }
-
-        let err = new Error(msg);
-        err.success = false;
-        err.status = res.status;
-        err.responseHeaders = res.headers;
-        throw err;
-    });
-}
-
 export class PyroclastTopicClient extends BaseClient {
     requiredOptions() {
         return ['endpoint', 'topicId', 'writeApiKey'];
     }
 
     sendEvent(event) {
-        return write(this, 'event', event);
+        return write(this, '/event', event);
     }
 
     sendEvents(events) {
-        return write(this, 'events', events);
+        return write(this, '/events', events);
     }
 }
 
-export class PyroclastServiceClient {
-    constructor({readApiKey,
-                 serviceId,
-                 endpoint,
-                 credentialsMode='include',
-                 fetchImpl=defaultFetch()}) {
-        if(!readApiKey || !serviceId || !endpoint) {
-            throw new Error('Required configuration not specified.');
+function read(client, path='') {
+    const url = `${client.options.endpoint}/api/v1/service/${client.options.serviceId}${path}`;
+
+    return client.fetchImpl(url, {
+        method: 'GET',
+        headers: {
+            'Authorization': client.options.readApiKey,
+        },
+        credentials: client.credentialsMode
+    }).then((res) => {
+        let msg;
+        switch(res.status) {
+        case 200:
+            return res.json();
+        case 401:
+            msg = 'API key is not authorized to perform this action';
+            break;
+        case 404:
+            msg = 'Not found';
+            break;
+        default:
+            msg = res.statusText || 'unknown';
         }
 
-        this.readApiKey = readApiKey;
-        this.serviceId = serviceId;
-        this.endpoint = endpoint;
-        this.fetchImpl = fetchImpl;
+        let err = new Error(msg);
+        err.status = res.status;
+        err.responseHeaders = res.headers;
+        throw err;
+    });
+}
+
+export class PyroclastServiceClient extends BaseClient {
+    requiredOptions() {
+        return ["readApiKey", "serviceId", "endpoint"];
     }
 
     readAggregates() {
-        return readServiceAggregate(this, function(url) { return url; });
+        return read(this);
     }
 
     readAggregate(aggregateName) {
-        return readServiceAggregate(this, function(url) { return url + "/aggregate/" + aggregateName; });
+        return read(this, `/aggregate/${aggregateName}`);
     }
 
     readAggregateGroup(aggregateName, groupName) {
-        return readServiceAggregate(this, function(url) { return url + "/aggregate/" + aggregateName + "/group/" + groupName });
+        return read(this, `/aggregate/${aggregateName}/group/${groupName}`);
     }
 }

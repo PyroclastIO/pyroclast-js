@@ -17,6 +17,7 @@ const pyroclast = require('pyroclast');
 
 const client = new pyroclast.PyroclastClient({
     writeApiKey: "<your api token>",
+    topicId": "<your topic ID>",
     endpoint: "<pyroclast endpoint>"
 });
 ```
@@ -25,7 +26,7 @@ const client = new pyroclast.PyroclastClient({
 
 ```javascript
 client
-    .sendEvent('my-topic', {type: "page-visit", page: "/home", timestamp: 1495072835000})
+    .sendEvent({type: "page-visit", page: "/home", timestamp: 1495072835000})
     .then((result) => {
         // ...
     });
@@ -35,7 +36,7 @@ client
 
 ```javascript
 client
-    .sendEvents('my-topic', [
+    .sendEvents([
         {type: "page-visit", page: "/home", timestamp: 1495072835000},
         {type: "page-visit", page: "/home", timestamp: 1495072836000},
         {type: "page-visit", page: "/home", timestamp: 1495072837000}

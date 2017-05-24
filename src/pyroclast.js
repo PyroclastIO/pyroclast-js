@@ -1,5 +1,5 @@
-function send(client, topicId, payloadKind, payload) {
-    const url = `${client.endpoint}/api/v${client.version}/topic/${topicId}/${payloadKind}`;
+function send(client, payloadKind, payload) {
+    const url = `${client.endpoint}/api/v${client.version}/topic/${client.topicId}/${payloadKind}`;
 
     return client.fetchImpl(url, {
         method: 'POST',
@@ -31,6 +31,39 @@ function send(client, topicId, payloadKind, payload) {
     });
 }
 
+function readServiceAggregate(client, urlF) {
+    const url = urlF(`${client.endpoint}/api/v${client.version}/service/${client.serviceId}`);
+
+    return client.fetchImpl(url, {
+        method: 'GET',
+        headers: {
+            'Authorization': client.readApiKey,
+        },
+        credentials: client.credentialsMode
+    }).then((res) => {
+        let msg;
+        switch(res.status) {
+        case 200:
+            var json = res.json();
+            return {"success": true, "aggregates": json};
+        case 401:
+            msg = 'API key is not authorized to perform this action';
+            break;
+        case 404:
+            msg = 'Aggregate not found';
+            break;
+        default:
+            msg = res.statusText || 'unknown';
+        }
+
+        let err = new Error(msg);
+        err.success = false;
+        err.status = res.status;
+        err.responseHeaders = res.headers;
+        throw err;
+    });
+}
+
 function defaultFetch() {
     if('undefined' !== typeof process && 
        Object.prototype.toString.call(process) === '[object process]') {
@@ -44,27 +77,60 @@ function defaultFetch() {
     throw new Error('No fetch implmentation found. Provide support via polyfill or by supplying the `fetchImpl` option.');
 }
 
-export class PyroclastClient {
+export class PyroclastTopicClient {
     constructor({writeApiKey,
+                 topicId,
                  endpoint,
                  version=1,
                  credentialsMode='include',
                  fetchImpl=defaultFetch()}) {
-        if(!writeApiKey || !endpoint) {
+        if(!writeApiKey || !topicID || !endpoint) {
             throw new Error('Required configuration not specified.');
         }
         
         this.writeApiKey = writeApiKey;
+        this.topicId = topicId;
         this.endpoint = endpoint;
         this.version = version;
         this.fetchImpl = fetchImpl; 
     }
 
-    sendEvent(topicId, event) {
-        return send(this, topicId, 'event', event);
+    sendEvent(event) {
+        return send(this, 'event', event);
     }
 
-    sendEvents(topicId, events) {
-        return send(this, topicId, 'events', events);
+    sendEvents(events) {
+        return send(this, 'events', events);
+    }
+}
+
+export class PyroclastServiceClient {
+    constructor({readApiKey,
+                 serviceId,
+                 endpoint,
+                 version=1,
+                 credentialsMode='include',
+                 fetchImpl=defaultFetch()}) {
+        if(!readApiKey || !serviceId || !endpoint) {
+            throw new Error('Required configuration not specified.');
+        }
+
+        this.readApiKey = readApiKey;
+        this.serviceId = serviceId;
+        this.endpoint = endpoint;
+        this.version = version;
+        this.fetchImpl = fetchImpl;
+    }
+
+    readAggregates() {
+        return readServiceAggregate(this, function(url) { return url; });
+    }
+
+    readAggregate(aggregateName) {
+        return readServiceAggregate(this, function(url) { return url + "/aggregate/" + aggregateName; });
+    }
+
+    readAggregateGroup(aggregateName, groupName) {
+        return readServiceAggregate(this, function(url) { return url + "/aggregate/" + aggregateName + "/group/" + groupName });
     }
 }

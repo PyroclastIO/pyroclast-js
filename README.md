@@ -15,7 +15,7 @@ First, define a configuration.
 ```javascript
 const pyroclast = require('pyroclast');
 
-const client = new pyroclast.PyroclastClient({
+const topicClient = new pyroclast.PyroclastTopicClient({
     writeApiKey: "<your api token>",
     topicId: "<your topic ID>",
     endpoint: "<pyroclast endpoint>"
@@ -25,7 +25,7 @@ const client = new pyroclast.PyroclastClient({
 ### Send one event asynchronously
 
 ```javascript
-client
+topicClient
     .sendEvent({type: "page-visit", page: "/home", timestamp: 1495072835000})
     .then((result) => {
         // ...
@@ -35,7 +35,7 @@ client
 ### Send a batch of events asynchronously
 
 ```javascript
-client
+topicClient
     .sendEvents([
         {type: "page-visit", page: "/home", timestamp: 1495072835000},
         {type: "page-visit", page: "/home", timestamp: 1495072836000},
@@ -53,8 +53,8 @@ By default:
 * In Node.js, `node-fetch` is used.
 
 To override this behavior:
-A. (Browser/Node.js) Pass the implementation as the `fetchImpl` option, or
-B. (Browser only) Use a polyfill to define fetch globally.
+* (Browser/Node.js) Pass the implementation as the `fetchImpl` option, or
+* (Browser only) Use a polyfill to define fetch globally.
 
 Note that to support older browsers, you will likely also need a Promise polyfill.
 

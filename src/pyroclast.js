@@ -1,5 +1,38 @@
-function send(client, payloadKind, payload) {
-    const url = `${client.endpoint}/api/v${client.version}/topic/${client.topicId}/${payloadKind}`;
+function defaultFetch() {
+    if('undefined' !== typeof process && 
+       Object.prototype.toString.call(process) === '[object process]') {
+        return require('node-fetch');
+    }
+
+    if(window.hasOwnProperty('fetch')) {
+        return window.fetch; 
+    }
+
+    throw new Error('No fetch implmentation found. Provide support via polyfill or by supplying the `fetchImpl` option.');
+}
+
+class BaseClient {
+    constructor(opts) {
+        const missingOption = this.requiredOptions().find((k) => !opts.hasOwnProperty(k));
+
+        if(missingOption) {
+            throw new Error(`Required configuration not specified: ${missingOption}.`);
+        }
+
+        const {credentialsMode='include', fetchImpl=defaultFetch()} = opts;
+
+        this.credentialsMode = credentialsMode;
+        this.fetchImpl = fetchImpl;
+        this.options = opts;
+    }
+    
+    requiredOptions() {
+        return [];
+    }
+}
+
+function write(client, payloadKind, payload) {
+    const url = `${client.options.endpoint}/api/v1/topic/${client.options.topicId}/${payloadKind}`;
 
     return client.fetchImpl(url, {
         method: 'POST',
@@ -32,7 +65,7 @@ function send(client, payloadKind, payload) {
 }
 
 function readServiceAggregate(client, urlF) {
-    const url = urlF(`${client.endpoint}/api/v${client.version}/service/${client.serviceId}`);
+    const url = urlF(`${client.endpoint}/api/v1/service/${client.serviceId}`);
 
     return client.fetchImpl(url, {
         method: 'GET',
@@ -64,43 +97,17 @@ function readServiceAggregate(client, urlF) {
     });
 }
 
-function defaultFetch() {
-    if('undefined' !== typeof process && 
-       Object.prototype.toString.call(process) === '[object process]') {
-        return require('node-fetch');
-    }
-
-    if(window.hasOwnProperty('fetch')) {
-        return window.fetch; 
-    }
-
-    throw new Error('No fetch implmentation found. Provide support via polyfill or by supplying the `fetchImpl` option.');
-}
-
-export class PyroclastTopicClient {
-    constructor({writeApiKey,
-                 topicId,
-                 endpoint,
-                 version=1,
-                 credentialsMode='include',
-                 fetchImpl=defaultFetch()}) {
-        if(!writeApiKey || !topicId || !endpoint) {
-            throw new Error('Required configuration not specified.');
-        }
-        
-        this.writeApiKey = writeApiKey;
-        this.topicId = topicId;
-        this.endpoint = endpoint;
-        this.version = version;
-        this.fetchImpl = fetchImpl; 
+export class PyroclastTopicClient extends BaseClient {
+    requiredOptions() {
+        return ['endpoint', 'topicId', 'writeApiKey'];
     }
 
     sendEvent(event) {
-        return send(this, 'event', event);
+        return write(this, 'event', event);
     }
 
     sendEvents(events) {
-        return send(this, 'events', events);
+        return write(this, 'events', events);
     }
 }
 
@@ -108,7 +115,6 @@ export class PyroclastServiceClient {
     constructor({readApiKey,
                  serviceId,
                  endpoint,
-                 version=1,
                  credentialsMode='include',
                  fetchImpl=defaultFetch()}) {
         if(!readApiKey || !serviceId || !endpoint) {
@@ -118,7 +124,6 @@ export class PyroclastServiceClient {
         this.readApiKey = readApiKey;
         this.serviceId = serviceId;
         this.endpoint = endpoint;
-        this.version = version;
         this.fetchImpl = fetchImpl;
     }
 

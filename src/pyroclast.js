@@ -70,11 +70,11 @@ export class PyroclastTopicClient extends BaseClient {
     }
 
     sendEvent(event) {
-        return write(this, '/event', event);
+        return write(this, '/produce', event);
     }
 
     sendEvents(events) {
-        return write(this, '/events', events);
+        return write(this, '/bulk-produce', events);
     }
 }
 

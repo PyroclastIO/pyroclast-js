@@ -32,7 +32,7 @@ class BaseClient {
 }
 
 function write(client, path, payload) {
-    const url = `${client.options.endpoint}/api/v1/topic/${client.options.topicId}${path}`;
+    const url = `${client.options.endpoint}/api/v1/topics/${client.options.topicId}${path}`;
 
     return client.fetchImpl(url, {
         method: 'POST',
@@ -79,7 +79,7 @@ export class PyroclastTopicClient extends BaseClient {
 }
 
 function read(client, path='') {
-    const url = `${client.options.endpoint}/api/v1/service/${client.options.serviceId}${path}`;
+    const url = `${client.options.endpoint}/api/v1/services/${client.options.serviceId}${path}`;
 
     return client.fetchImpl(url, {
         method: 'GET',
@@ -119,10 +119,10 @@ export class PyroclastServiceClient extends BaseClient {
     }
 
     readAggregate(aggregateName) {
-        return read(this, `/aggregate/${aggregateName}`);
+        return read(this, `/aggregates/${aggregateName}`);
     }
 
     readAggregateGroup(aggregateName, groupName) {
-        return read(this, `/aggregate/${aggregateName}/group/${groupName}`);
+        return read(this, `/aggregates/${aggregateName}/group/${groupName}`);
     }
 }

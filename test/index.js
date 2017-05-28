@@ -46,15 +46,25 @@ describe('PyroclastTopicClient', function() {
         expect(c.fetchImpl.custom).to.be.ok();
     });
 
-    it('should promise parsed json from successful requests', function(done) {
+    it('should promise parsed json from successful send requests', function(done) {
         const c = new PyroclastTopicClient({writeApiKey, topicId, endpoint, fetchImpl: mockFetch});
         c.sendEvent({foo: 'bar', mocking: 200})
             .then((result) => {
-                expect(result.url).to.equal("http://no.op/api/v1/topic/atopic/event")
+                expect(result.url).to.equal("http://no.op/api/v1/topics/atopic/produce")
                 expect(result.baz).to.equal('quux');
                 done();
             })
             .catch(done);
+    });
+
+    it('should promise parsed json from successful send multiple requests', function(done) {
+        const c = new PyroclastTopicClient({writeApiKey, topicId, endpoint, fetchImpl: mockFetch});
+        c.sendEvents({foo: 'bar', mocking: 200})
+            .then((result) => {
+                expect(result.url).to.equal("http://no.op/api/v1/topics/atopic/bulk-produce")
+                done();
+            })
+        .catch((e) => {console.log(e); done(e);});
     });
 
     it('should reject on 400s', function(done) {
@@ -118,15 +128,15 @@ describe('PyroclastServiceClient', function() {
             .all([
                 c.readAggregates()
                     .then((result) => {
-                        expect(result.url).to.equal("http://no.op/api/v1/service/aservice");
+                        expect(result.url).to.equal("http://no.op/api/v1/services/aservice");
                     }),
                 c.readAggregate('foo')
                     .then((result) => {
-                        expect(result.url).to.equal("http://no.op/api/v1/service/aservice/aggregate/foo");
+                        expect(result.url).to.equal("http://no.op/api/v1/services/aservice/aggregates/foo");
                     }),
                 c.readAggregateGroup('foo', 'bar')
                     .then((result) => {
-                        expect(result.url).to.equal("http://no.op/api/v1/service/aservice/aggregate/foo/group/bar");
+                        expect(result.url).to.equal("http://no.op/api/v1/services/aservice/aggregates/foo/group/bar");
                     })
             ])
             .then((_) => done())

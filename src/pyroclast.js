@@ -5,7 +5,7 @@ function defaultFetch() {
     }
 
     if(window.hasOwnProperty('fetch')) {
-        return window.fetch; 
+        return (...args) => window.fetch.apply(window, args);
     }
 
     throw new Error('No fetch implmentation found. Provide support via polyfill or by supplying the `fetchImpl` option.');

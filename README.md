@@ -8,21 +8,22 @@ Browser + Node.js support for sending events to a Pyroclast topic.
 npm install --save pyroclast
 ```
 
-## Usage
+## Topic APIs
 
-First, define a configuration.
+### Write events
+
+First, start the client.
 
 ```javascript
 const pyroclast = require('pyroclast');
 
 const topicClient = new pyroclast.PyroclastTopicClient({
     writeApiKey: "<your api token>",
-    topicId: "<your topic ID>",
-    endpoint: "<pyroclast endpoint>"
+    topicId: "<your topic ID>"
 });
 ```
 
-### Send one event asynchronously
+#### Send one event asynchronously
 
 ```javascript
 topicClient
@@ -32,7 +33,7 @@ topicClient
     });
 ```
 
-### Send a batch of events asynchronously
+#### Send a batch of events asynchronously
 
 ```javascript
 topicClient
@@ -42,6 +43,45 @@ topicClient
         {type: "page-visit", page: "/home", timestamp: 1495072837000}
     ])
     .then((results) => {
+        // ...
+    });
+```
+
+### Reading events
+
+Start the client.
+
+```javascript
+const pyroclast = require('pyroclast');
+
+const topicClient = new pyroclast.PyroclastTopicClient({
+    readApiKey: "<your api token>",
+    topicId: "<your topic ID>"
+});
+```
+
+#### Subscribe to a topic
+
+```javascript
+topicClient.subscribe("my-example-subscription");
+```
+
+#### Poll subscribed topic
+
+```javascript
+topicClient
+    .poll("my-example-subscription")
+    .then((result) => {
+        // ...
+    });
+```
+
+#### Commit read records
+
+```javascript
+topicClient
+    .commit("my-example-subscription")
+    .then((result) => {
         // ...
     });
 ```

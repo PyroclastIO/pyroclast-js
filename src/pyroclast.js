@@ -22,8 +22,15 @@ class BaseClient {
     constructor(opts) {
         assertKeys(opts, this.requiredOptions());
 
-        const {credentialsMode='include', fetchImpl=defaultFetch()} = opts;
+        const {
+            credentialsMode='include',
+            fetchImpl=defaultFetch(),
+            region='us-east-1',
+            endpoint
+        } = opts;
 
+        opts.endpoint = endpoint || `https://api.${region}.pyroclast.io`;
+        
         this.credentialsMode = credentialsMode;
         this.fetchImpl = fetchImpl;
         this.options = opts;
@@ -35,7 +42,7 @@ class BaseClient {
 }
 
 function topic(client, apiKey, path, payload) {
-    const url = `${client.options.endpoint}/api/v1/topics/${client.options.topicId}${path}`;
+    const url = `${client.options.endpoint}/v1/topics/${client.options.topicId}${path}`;
     let body;
 
     if(payload) {
@@ -76,7 +83,7 @@ const alphanumeric = /^[\d\w]+$/;
 
 export class PyroclastTopicClient extends BaseClient {
     requiredOptions() {
-        return ['endpoint', 'topicId'];
+        return ['topicId'];
     }
 
     sendEvent(event) {
@@ -109,7 +116,7 @@ export class PyroclastTopicClient extends BaseClient {
 }
 
 function service(client, path='') {
-    const url = `${client.options.endpoint}/api/v1/services/${client.options.serviceId}${path}`;
+    const url = `${client.options.endpoint}/v1/services/${client.options.serviceId}${path}`;
 
     return client.fetchImpl(url, {
         method: 'GET',
@@ -141,7 +148,7 @@ function service(client, path='') {
 
 export class PyroclastServiceClient extends BaseClient {
     requiredOptions() {
-        return ["readApiKey", "serviceId", "endpoint"];
+        return ['readApiKey', 'serviceId'];
     }
 
     readAggregates() {

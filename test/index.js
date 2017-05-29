@@ -10,8 +10,18 @@ describe('PyroclastTopicClient', function() {
     });
     
     it('bootstraps a default fetch impl under Node', function() {
-        const c = new PyroclastTopicClient({topicId, endpoint});
+        const c = new PyroclastTopicClient({topicId});
         expect(c.fetchImpl).to.be.ok();
+    });
+
+    it('uses default endpoint when none provided', function() {
+        const c = new PyroclastTopicClient({topicId});
+        expect(c.options.endpoint).to.equal('https://api.us-east-1.pyroclast.io');
+    });
+
+    it('uses region to set endpoint', function() {
+        const c = new PyroclastTopicClient({topicId, region: 'foo'});
+        expect(c.options.endpoint).to.equal('https://api.foo.pyroclast.io');
     });
 
     const mockFetch = (url, {body, headers}) => {
@@ -52,7 +62,7 @@ describe('PyroclastTopicClient', function() {
             const c = new PyroclastTopicClient({writeApiKey, topicId, endpoint, fetchImpl: mockFetch});
             c.sendEvent({foo: 'bar', mocking: 200})
                 .then((result) => {
-                    expect(result.url).to.equal("http://no.op/api/v1/topics/atopic/produce")
+                    expect(result.url).to.equal("http://no.op/v1/topics/atopic/produce")
                     expect(result.baz).to.equal('quux');
                     expect(result.headers.Authorization).to.be.equal(writeApiKey);
                     done();
@@ -64,7 +74,7 @@ describe('PyroclastTopicClient', function() {
             const c = new PyroclastTopicClient({writeApiKey, topicId, endpoint, fetchImpl: mockFetch});
             c.sendEvents({foo: 'bar', mocking: 200})
                 .then((result) => {
-                    expect(result.url).to.equal("http://no.op/api/v1/topics/atopic/bulk-produce");
+                    expect(result.url).to.equal("http://no.op/v1/topics/atopic/bulk-produce");
                     expect(result.headers.Authorization).to.be.equal(writeApiKey);
                     done();
                 })
@@ -110,7 +120,7 @@ describe('PyroclastTopicClient', function() {
             const c = new PyroclastTopicClient({readApiKey, topicId, endpoint, fetchImpl: mockFetch});
             c.subscribe('asubscriber', {mocking: 200})
                 .then((result) => {
-                    expect(result.url).to.equal("http://no.op/api/v1/topics/atopic/subscribe/asubscriber");
+                    expect(result.url).to.equal("http://no.op/v1/topics/atopic/subscribe/asubscriber");
                     expect(result.headers.Authorization).to.be.equal(readApiKey);
                     done();
                 })
@@ -121,7 +131,7 @@ describe('PyroclastTopicClient', function() {
             const c = new PyroclastTopicClient({readApiKey, topicId, endpoint, fetchImpl: mockFetch});
             c.poll('asubscriber', {mocking: 200})
                 .then((result) => {
-                    expect(result.url).to.equal("http://no.op/api/v1/topics/atopic/poll/asubscriber");
+                    expect(result.url).to.equal("http://no.op/v1/topics/atopic/poll/asubscriber");
                     expect(result.headers.Authorization).to.be.equal(readApiKey);
                     done();
                 })
@@ -132,7 +142,7 @@ describe('PyroclastTopicClient', function() {
             const c = new PyroclastTopicClient({readApiKey, topicId, endpoint, fetchImpl: mockFetch});
             c.commit('asubscriber', {mocking: 200})
                 .then((result) => {
-                    expect(result.url).to.equal("http://no.op/api/v1/topics/atopic/poll/asubscriber/commit");
+                    expect(result.url).to.equal("http://no.op/v1/topics/atopic/poll/asubscriber/commit");
                     expect(result.headers.Authorization).to.be.equal(readApiKey);
                     done();
                 })
@@ -177,16 +187,16 @@ describe('PyroclastServiceClient', function() {
             .all([
                 c.readAggregates()
                     .then((result) => {
-                        expect(result.url).to.equal("http://no.op/api/v1/services/aservice");
+                        expect(result.url).to.equal("http://no.op/v1/services/aservice");
                         expect(result.headers.Authorization).to.be.equal(readApiKey);
                     }),
                 c.readAggregate('foo')
                     .then((result) => {
-                        expect(result.url).to.equal("http://no.op/api/v1/services/aservice/aggregates/foo");
+                        expect(result.url).to.equal("http://no.op/v1/services/aservice/aggregates/foo");
                     }),
                 c.readAggregateGroup('foo', 'bar')
                     .then((result) => {
-                        expect(result.url).to.equal("http://no.op/api/v1/services/aservice/aggregates/foo/group/bar");
+                        expect(result.url).to.equal("http://no.op/v1/services/aservice/aggregates/foo/group/bar");
                     })
             ])
             .then((_) => done())

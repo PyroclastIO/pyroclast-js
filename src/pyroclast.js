@@ -8,7 +8,7 @@ function defaultFetch() {
         return (...args) => window.fetch.apply(window, args);
     }
 
-    throw new Error('No fetch implmentation found. Provide support via polyfill or by supplying the `fetchImpl` option.');
+    throw new Error('No fetch implementation found. Provide support via polyfill or by supplying the `fetchImpl` option.');
 }
 
 function assertKeys(obj, ks) {

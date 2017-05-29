@@ -79,7 +79,7 @@ function topic(client, apiKey, path, payload) {
     });
 }
 
-const alphanumeric = /^[\d\w]+$/;
+const alphanumeric = /^[\d\w-]+$/;
 
 export class PyroclastTopicClient extends BaseClient {
     requiredOptions() {

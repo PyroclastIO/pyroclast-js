@@ -112,7 +112,7 @@ describe('PyroclastTopicClient', function() {
         it('should throw when requesting malformed subscriber name', function() {
             const c = new PyroclastTopicClient({readApiKey, topicId, endpoint, fetchImpl: mockFetch});
             expect(() => {
-                c.subscribe('contains-hyphen')
+                c.subscribe('contains/slash')
             }).to.throwError();
         });
 

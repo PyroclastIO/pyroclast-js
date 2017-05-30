@@ -1,5 +1,5 @@
 import expect from 'expect.js';
-import {PyroclastTopicClient, PyroclastServiceClient} from '../src/pyroclast';
+import {PyroclastTopicClient, PyroclastDeploymentClient} from '../src/pyroclast';
 
 describe('PyroclastTopicClient', function() {
     const topicId = "atopic";
@@ -151,17 +151,17 @@ describe('PyroclastTopicClient', function() {
     });
 });
 
-describe('PyroclastServiceClient', function() {
+describe('PyroclastDeploymentClient', function() {
     const readApiKey = 'key';
-    const serviceId = "aservice";
+    const deploymentId = "adeployment";
     const endpoint = 'http://no.op';
 
     it('fails to construct when required options are not specified.', function() {
-        expect(() => new PyroclastServiceClient({})).to.throwError();
+        expect(() => new PyroclastDeploymentClient({})).to.throwError();
     });
 
     it('bootstraps a default fetch impl under Node', function() {
-        const c = new PyroclastServiceClient({readApiKey, serviceId, endpoint});
+        const c = new PyroclastDeploymentClient({readApiKey, deploymentId, endpoint});
         expect(c.fetchImpl).to.be.ok();
     });
 
@@ -177,26 +177,26 @@ describe('PyroclastServiceClient', function() {
     mockFetch.custom = true;
 
     it('uses user-specified fetch implementation when provided.', function() {
-        const c = new PyroclastServiceClient({readApiKey, serviceId, endpoint, fetchImpl: mockFetch});
+        const c = new PyroclastDeploymentClient({readApiKey, deploymentId, endpoint, fetchImpl: mockFetch});
         expect(c.fetchImpl.custom).to.be.ok();
     });
 
     it('should promise parsed json at the correctly constructed urls', function(done) {
-        const c = new PyroclastServiceClient({readApiKey, serviceId, endpoint, fetchImpl: mockFetch});
+        const c = new PyroclastDeploymentClient({readApiKey, deploymentId, endpoint, fetchImpl: mockFetch});
         Promise
             .all([
                 c.readAggregates()
                     .then((result) => {
-                        expect(result.url).to.equal("http://no.op/v1/services/aservice");
+                        expect(result.url).to.equal("http://no.op/v1/deployments/adeployment/aggregates");
                         expect(result.headers.Authorization).to.be.equal(readApiKey);
                     }),
                 c.readAggregate('foo')
                     .then((result) => {
-                        expect(result.url).to.equal("http://no.op/v1/services/aservice/aggregates/foo");
+                        expect(result.url).to.equal("http://no.op/v1/deployments/adeployment/aggregates/foo");
                     }),
                 c.readAggregateGroup('foo', 'bar')
                     .then((result) => {
-                        expect(result.url).to.equal("http://no.op/v1/services/aservice/aggregates/foo/group/bar");
+                        expect(result.url).to.equal("http://no.op/v1/deployments/adeployment/aggregates/foo/group/bar");
                     })
             ])
             .then((_) => done())

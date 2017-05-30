@@ -115,8 +115,8 @@ export class PyroclastTopicClient extends BaseClient {
     }
 }
 
-function service(client, path='') {
-    const url = `${client.options.endpoint}/v1/services/${client.options.serviceId}${path}`;
+function deployment(client, path='') {
+    const url = `${client.options.endpoint}/v1/deployments/${client.options.deploymentId}${path}`;
 
     return client.fetchImpl(url, {
         method: 'GET',
@@ -146,20 +146,20 @@ function service(client, path='') {
     });
 }
 
-export class PyroclastServiceClient extends BaseClient {
+export class PyroclastDeploymentClient extends BaseClient {
     requiredOptions() {
-        return ['readApiKey', 'serviceId'];
+        return ['readApiKey', 'deploymentId'];
     }
 
     readAggregates() {
-        return service(this);
+        return deployment(this, '/aggregates');
     }
 
     readAggregate(aggregateName) {
-        return service(this, `/aggregates/${aggregateName}`);
+        return deployment(this, `/aggregates/${aggregateName}`);
     }
 
     readAggregateGroup(aggregateName, groupName) {
-        return service(this, `/aggregates/${aggregateName}/group/${groupName}`);
+        return deployment(this, `/aggregates/${aggregateName}/group/${groupName}`);
     }
 }

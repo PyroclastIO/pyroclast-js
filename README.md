@@ -27,7 +27,7 @@ const topicClient = new pyroclast.PyroclastTopicClient({
 
 ```javascript
 topicClient
-    .sendEvent({type: "page-visit", page: "/home", timestamp: 1495072835000})
+    .sendEvent({value: {type: "page-visit", page: "/home", timestamp: 1495072835000}})
     .then((result) => {
         // ...
     });
@@ -38,9 +38,9 @@ topicClient
 ```javascript
 topicClient
     .sendEvents([
-        {type: "page-visit", page: "/home", timestamp: 1495072835000},
-        {type: "page-visit", page: "/home", timestamp: 1495072836000},
-        {type: "page-visit", page: "/home", timestamp: 1495072837000}
+        {value: {type: "page-visit", page: "/home", timestamp: 1495072835000}},
+        {value: {type: "page-visit", page: "/home", timestamp: 1495072836000}},
+        {value: {type: "page-visit", page: "/home", timestamp: 1495072837000}}
     ])
     .then((results) => {
         // ...

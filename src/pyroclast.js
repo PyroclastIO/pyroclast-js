@@ -88,11 +88,13 @@ export class PyroclastTopicClient extends BaseClient {
 
     sendEvent(event) {
         assertKeys(this.options, ['writeApiKey']);
+        assertKeys(event, ['value'])
         return topic(this, this.options.writeApiKey, '/produce', event);
     }
 
     sendEvents(events) {
         assertKeys(this.options, ['writeApiKey']);
+        events.forEach((event) => assertKeys(event, ['value']))
         return topic(this, this.options.writeApiKey, '/bulk-produce', events);
     }
 

@@ -1,7 +1,7 @@
 {
   "name": "pyroclast",
-  "version": "0.1.5",
-  "description": "Browser + Node.js support for sending events to a Pyroclast topic.",
+  "version": "0.1.6",
+  "description": "Browser + Node.js support for Pyroclast.",
   "main": "lib/pyroclast.js",
   "scripts": {
     "test": "mocha --compilers js:babel-register",

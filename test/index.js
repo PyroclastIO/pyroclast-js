@@ -26,8 +26,11 @@ describe('PyroclastTopicClient', function() {
 
     const mockFetch = (url, {body, headers}) => {
         body = body ? JSON.parse(body) : {mocking: 200};
+        let mocking = body.mocking
+            || (body.value && body.value.mocking)
+            || (body[0] && body[0].value && body[0].value.mocking);
         return new Promise((resolve, reject) => {
-            switch (body.mocking) {
+            switch (mocking) {
             case 200:
                 return resolve({
                     status: 200,
@@ -36,11 +39,11 @@ describe('PyroclastTopicClient', function() {
             case 400:
             case 401:
                 return resolve({
-                    status: body.mocking
+                    status: mocking
                 });
             case 999:
                 return resolve({
-                    status: body.mocking,
+                    status: mocking,
                     responseText: 'potato'
                 });
             default:
@@ -60,7 +63,7 @@ describe('PyroclastTopicClient', function() {
 
         it('should promise parsed json from successful send requests', function(done) {
             const c = new PyroclastTopicClient({writeApiKey, topicId, endpoint, fetchImpl: mockFetch});
-            c.sendEvent({foo: 'bar', mocking: 200})
+            c.sendEvent({value: {foo: 'bar', mocking: 200}})
                 .then((result) => {
                     expect(result.url).to.equal("http://no.op/v1/topics/atopic/produce")
                     expect(result.baz).to.equal('quux');
@@ -72,7 +75,7 @@ describe('PyroclastTopicClient', function() {
 
         it('should promise parsed json from successful send multiple requests', function(done) {
             const c = new PyroclastTopicClient({writeApiKey, topicId, endpoint, fetchImpl: mockFetch});
-            c.sendEvents({foo: 'bar', mocking: 200})
+            c.sendEvents([{value: {foo: 'bar', mocking: 200}}])
                 .then((result) => {
                     expect(result.url).to.equal("http://no.op/v1/topics/atopic/bulk-produce");
                     expect(result.headers.Authorization).to.be.equal(writeApiKey);
@@ -81,9 +84,15 @@ describe('PyroclastTopicClient', function() {
                 .catch((e) => {console.log(e); done(e);});
         });
 
+        it('should throw when values are not wrappped', function() {
+            const c = new PyroclastTopicClient({writeApiKey, topicId, endpoint, fetchImpl: mockFetch});
+            expect(() => c.sendEvent({foo: 'bar'})).to.throwError();
+            expect(() => c.sendEvent([{value: {foo: 'wrapped'}}, {foo: 'unwrapped'}])).to.throwError();
+        });
+
         it('should reject on 400s', function(done) {
             const c = new PyroclastTopicClient({writeApiKey, topicId, endpoint, fetchImpl: mockFetch});
-            c.sendEvent({foo: 'bar', mocking: 400})
+            c.sendEvent({value: {foo: 'bar', mocking: 400}})
                 .then((result) => {
                     done('Not expected');
                 })
@@ -95,7 +104,7 @@ describe('PyroclastTopicClient', function() {
 
         it('should reject on network error', function(done) {
             const c = new PyroclastTopicClient({writeApiKey, topicId, endpoint, fetchImpl: mockFetch});
-            c.sendEvent({foo: 'bar', mocking: null})
+            c.sendEvent({value: {foo: 'bar', mocking: null}})
                 .then((result) => {
                     done('Not expected');
                 })

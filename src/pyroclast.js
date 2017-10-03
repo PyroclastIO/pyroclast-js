@@ -117,14 +117,16 @@ export class PyroclastTopicClient extends BaseClient {
     }
 }
 
-function deployment(client, path='') {
+function deployment(client, queryCriteria, path='') {
     const url = `${client.options.endpoint}/v1/deployments/${client.options.deploymentId}${path}`;
 
     return client.fetchImpl(url, {
         method: 'GET',
         headers: {
             'Authorization': client.options.readApiKey,
+            'Content-Type': 'application/json'
         },
+        body: queryCriteria && JSON.stringify(queryCriteria),
         credentials: client.credentialsMode
     }).then((res) => {
         let msg;
@@ -154,14 +156,10 @@ export class PyroclastDeploymentClient extends BaseClient {
     }
 
     readAggregates() {
-        return deployment(this, '/aggregates');
+        return deployment(this, {}, '/aggregates');
     }
 
-    readAggregate(aggregateName) {
-        return deployment(this, `/aggregates/${aggregateName}`);
-    }
-
-    readAggregateGroup(aggregateName, groupName) {
-        return deployment(this, `/aggregates/${aggregateName}/group/${groupName}`);
+    readAggregate(aggregateName, queryCriteria={}) {
+        return deployment(this, queryCriteria, `/aggregates/${aggregateName}`);
     }
 }

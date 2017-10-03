@@ -202,10 +202,6 @@ describe('PyroclastDeploymentClient', function() {
                 c.readAggregate('foo')
                     .then((result) => {
                         expect(result.url).to.equal("http://no.op/v1/deployments/adeployment/aggregates/foo");
-                    }),
-                c.readAggregateGroup('foo', 'bar')
-                    .then((result) => {
-                        expect(result.url).to.equal("http://no.op/v1/deployments/adeployment/aggregates/foo/group/bar");
                     })
             ])
             .then((_) => done())

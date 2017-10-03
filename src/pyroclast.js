@@ -124,9 +124,9 @@ function deployment(client, queryCriteria, path='') {
         method: 'GET',
         headers: {
             'Authorization': client.options.readApiKey,
-            'Content-type': 'application/json'
+            'Content-Type': 'application/json'
         },
-        body: queryCriteria,
+        body: queryCriteria && JSON.stringify(queryCriteria),
         credentials: client.credentialsMode
     }).then((res) => {
         let msg;

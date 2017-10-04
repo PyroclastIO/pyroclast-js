@@ -121,7 +121,7 @@ function deployment(client, queryCriteria, path='') {
     const url = `${client.options.endpoint}/v1/deployments/${client.options.deploymentId}${path}`;
 
     return client.fetchImpl(url, {
-        method: 'GET',
+        method: 'POST',
         headers: {
             'Authorization': client.options.readApiKey,
             'Content-Type': 'application/json'

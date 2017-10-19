@@ -1,26 +1,30 @@
 import expect from 'expect.js';
-import {PyroclastTopicClient, PyroclastDeploymentClient} from '../src/pyroclast';
+import {PyroclastTopicClient, PyroclastDeploymentClient, PyroclastConsumerInstance} from '../src/pyroclast';
 
 describe('PyroclastTopicClient', function() {
-    const topicId = "atopic";
-    const endpoint = 'http://no.op';
+    const config = {
+        writeApiKey: "cc5409fc-1e59-44e8-b1e8-0701d0a204de",
+        readApiKey:"3a6d9c33-86a7-4bb6-ad20-dd239fc93f94",
+        topicId: "atopic",
+        endpoint: 'http://no.op'
+    };
     
     it('fails to construct when required options are not specified.', function() {
         expect(() => new PyroclastTopicClient({})).to.throwError();
     });
     
     it('bootstraps a default fetch impl under Node', function() {
-        const c = new PyroclastTopicClient({topicId});
+        const c = new PyroclastTopicClient(config);
         expect(c.fetchImpl).to.be.ok();
     });
 
     it('uses default endpoint when none provided', function() {
-        const c = new PyroclastTopicClient({topicId});
+        const c = new PyroclastTopicClient(Object.assign({}, config, {endpoint: null}));
         expect(c.options.endpoint).to.equal('https://api.us-east-1.pyroclast.io');
     });
 
     it('uses region to set endpoint', function() {
-        const c = new PyroclastTopicClient({topicId, region: 'foo'});
+        const c = new PyroclastTopicClient(Object.assign({}, config, {region: 'foo', endpoint: null}));
         expect(c.options.endpoint).to.equal('https://api.foo.pyroclast.io');
     });
 
@@ -54,44 +58,41 @@ describe('PyroclastTopicClient', function() {
     mockFetch.custom = true;
 
     it('uses user-specified fetch implementation when provided.', function() {
-        const c = new PyroclastTopicClient({topicId, endpoint, fetchImpl: mockFetch});
+        const c = new PyroclastTopicClient(Object.assign({}, config, {fetchImpl: mockFetch}));
         expect(c.fetchImpl.custom).to.be.ok();
     });
 
     describe('Producing', function() {
         const writeApiKey = 'wkey';
 
-        it('should promise parsed json from successful send requests', function(done) {
-            const c = new PyroclastTopicClient({writeApiKey, topicId, endpoint, fetchImpl: mockFetch});
+        it('should promise true from a successful request', function(done) {
+            const c = new PyroclastTopicClient(Object.assign({}, config, {fetchImpl: mockFetch}));
             c.sendEvent({value: {foo: 'bar', mocking: 200}})
                 .then((result) => {
-                    expect(result.url).to.equal("http://no.op/v1/topics/atopic/produce")
-                    expect(result.baz).to.equal('quux');
-                    expect(result.headers.Authorization).to.be.equal(writeApiKey);
+                    expect(result).to.be.ok();
                     done();
                 })
                 .catch(done);
         });
 
-        it('should promise parsed json from successful send multiple requests', function(done) {
-            const c = new PyroclastTopicClient({writeApiKey, topicId, endpoint, fetchImpl: mockFetch});
+        it('should promise true from successful send multiple requests', function(done) {
+            const c = new PyroclastTopicClient(Object.assign({}, config, {fetchImpl: mockFetch}));
             c.sendEvents([{value: {foo: 'bar', mocking: 200}}])
                 .then((result) => {
-                    expect(result.url).to.equal("http://no.op/v1/topics/atopic/bulk-produce");
-                    expect(result.headers.Authorization).to.be.equal(writeApiKey);
+                    expect(result).to.be.ok();
                     done();
                 })
                 .catch((e) => {console.log(e); done(e);});
         });
 
         it('should throw when values are not wrappped', function() {
-            const c = new PyroclastTopicClient({writeApiKey, topicId, endpoint, fetchImpl: mockFetch});
+            const c = new PyroclastTopicClient(Object.assign({}, config, {fetchImpl: mockFetch}));
             expect(() => c.sendEvent({foo: 'bar'})).to.throwError();
             expect(() => c.sendEvent([{value: {foo: 'wrapped'}}, {foo: 'unwrapped'}])).to.throwError();
         });
 
         it('should reject on 400s', function(done) {
-            const c = new PyroclastTopicClient({writeApiKey, topicId, endpoint, fetchImpl: mockFetch});
+            const c = new PyroclastTopicClient(Object.assign({}, config, {fetchImpl: mockFetch}));
             c.sendEvent({value: {foo: 'bar', mocking: 400}})
                 .then((result) => {
                     done('Not expected');
@@ -103,7 +104,7 @@ describe('PyroclastTopicClient', function() {
         });
 
         it('should reject on network error', function(done) {
-            const c = new PyroclastTopicClient({writeApiKey, topicId, endpoint, fetchImpl: mockFetch});
+            const c = new PyroclastTopicClient(Object.assign({}, config, {fetchImpl: mockFetch}));
             c.sendEvent({value: {foo: 'bar', mocking: null}})
                 .then((result) => {
                     done('Not expected');
@@ -119,25 +120,25 @@ describe('PyroclastTopicClient', function() {
         const readApiKey = 'rkey';
 
         it('should throw when requesting malformed subscriber name', function() {
-            const c = new PyroclastTopicClient({readApiKey, topicId, endpoint, fetchImpl: mockFetch});
+            const c = new PyroclastTopicClient(Object.assign({}, config, {fetchImpl: mockFetch}));
             expect(() => {
                 c.subscribe('contains/slash')
             }).to.throwError();
         });
 
-        it('should construct correct subscribe request', function(done) {
-            const c = new PyroclastTopicClient({readApiKey, topicId, endpoint, fetchImpl: mockFetch});
-            c.subscribe('asubscriber', {mocking: 200})
-                .then((result) => {
-                    expect(result.url).to.equal("http://no.op/v1/topics/atopic/subscribe/asubscriber");
-                    expect(result.headers.Authorization).to.be.equal(readApiKey);
+/*        it('should promise a PyroclastConsumerInstance', function(done) {
+            const c = new PyroclastTopicClient(Object.assign({}, config, {fetchImpl: mockFetch}));
+            c.subscribe('asubscriber', {mocking: 201, 'group-id': 'foo'})
+                .then((consumerInstance) => {
+                    console.log("ERROR", consumerInstance.name);
+                    //expect(consumerInstance).to.be.an.instanceOf(PyroclastConsumerInstance)
                     done();
                 })
                 .catch(done);
         });
 
         it('should construct correct poll request', function(done) {
-            const c = new PyroclastTopicClient({readApiKey, topicId, endpoint, fetchImpl: mockFetch});
+            const c = new PyroclastTopicClient(Object.assign({}, config, {fetchImpl: mockFetch}));
             c.poll('asubscriber', {mocking: 200})
                 .then((result) => {
                     expect(result.url).to.equal("http://no.op/v1/topics/atopic/poll/asubscriber");
@@ -148,7 +149,7 @@ describe('PyroclastTopicClient', function() {
         });
 
         it('should construct correct commit request', function(done) {
-            const c = new PyroclastTopicClient({readApiKey, topicId, endpoint, fetchImpl: mockFetch});
+            const c = new PyroclastTopicClient(Object.assign({}, config, {fetchImpl: mockFetch}));
             c.commit('asubscriber', {mocking: 200})
                 .then((result) => {
                     expect(result.url).to.equal("http://no.op/v1/topics/atopic/poll/asubscriber/commit");
@@ -156,7 +157,7 @@ describe('PyroclastTopicClient', function() {
                     done();
                 })
                 .catch(done);
-        });
+        });*/
     });
 });
 
@@ -207,4 +208,77 @@ describe('PyroclastDeploymentClient', function() {
             .then((_) => done())
             .catch(done);
     });
+});
+
+// Integration test, use with real credentials.
+describe('IhaveNoIdeaWhatIamDoing', function(){
+    const topicClient = new PyroclastTopicClient({
+        writeApiKey: "cc5409fc-1e59-44e8-b1e8-0701d0a204de",
+        readApiKey:"3a6d9c33-86a7-4bb6-ad20-dd239fc93f94",
+        topicId: "topic-7d5d4716-1d91-4392-9126-053d5f76e2e7",
+        endpoint: "http://localhost:10556"
+    });
+    it('fails to construct when the required options are not specified', function(){
+       expect(() => new PyroclastTopicClient({})).to.throwError();
+    });
+
+    it('bootstraps a default fetch impl under Node', function() {
+        expect(topicClient.fetchImpl).to.be.ok();
+    });
+    it('We can send an event and multiple batch events', function(done) {
+        topicClient.sendEvent({"value": "foo"}).then((res) => {
+            expect(res).to.be.ok();
+        });
+        topicClient.sendEvents([{"value": "foo"}]).then((res) => {
+            expect(res).to.be.ok();
+        })
+            .then(done())
+            .catch(done);
+    })
+    it('We can subscribe to a topic and get back a list of records', function(done){
+        topicClient.subscribe("geee").then(
+            (consumerInstance) => {
+                consumerInstance.poll().then(
+                    (records) => {
+                        expect(records).to.be.an('array');
+                        expect(records).to.not.be.empty;
+                    }
+                ).catch(done);
+                consumerInstance.commit().then(
+                    (status) => {
+                        expect(status).to.be.ok();
+                    }
+                ).catch(done);
+                consumerInstance.poll().then(
+                    (records) => {
+                        expect(records).to.be.an('array');
+                        expect(records).to.be.empty;
+                    }
+                ).catch(done);
+                consumerInstance.seekBeginning().then(
+                    (status) => {
+                        expect(status).to.be.ok();
+                    }
+                ).catch(done);
+                consumerInstance.poll().then(
+                    (records) => {
+                        expect(records).to.be.an('array');
+                        expect(records).to.not.be.empty;
+                    }
+                ).catch(done);
+                consumerInstance.seek([{partition: 0, offset: 0},
+                                       {partition: 1, offset: 0}]).then(
+                    (status) => {
+                        expect(status).to.be.ok();
+                    }
+                ).catch(done);
+                consumerInstance.poll().then(
+                    (records) => {
+                        expect(records).to.be.an('array');
+                        expect(records).to.not.be.empty;
+                    }
+                ).then(done()).catch(done);
+            }
+        )
+    })
 });

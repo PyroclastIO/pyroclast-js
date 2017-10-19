@@ -67,7 +67,7 @@ const topicClient = new pyroclast.PyroclastTopicClient({
 topicClient.subscribe("my-example-subscription").then(
     (consumerInstance) => {
     //...
-    }
+    })
 ```
 
 #### Poll subscribed topic

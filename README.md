@@ -1,4 +1,4 @@
-## pyroclast-js
+ ## pyroclast-js
 
 Browser + Node.js support for sending events to a Pyroclast topic.
 
@@ -19,6 +19,7 @@ const pyroclast = require('pyroclast');
 
 const topicClient = new pyroclast.PyroclastTopicClient({
     writeApiKey: "<your api token>",
+    readApiKey: "<your api token>",
     topicId: "<your topic ID>"
 });
 ```
@@ -63,14 +64,16 @@ const topicClient = new pyroclast.PyroclastTopicClient({
 #### Subscribe to a topic
 
 ```javascript
-topicClient.subscribe("my-example-subscription");
+topicClient.subscribe("my-example-subscription").then(
+    (consumerInstance) => {
+    //...
+    }
 ```
 
 #### Poll subscribed topic
 
 ```javascript
-topicClient
-    .poll("my-example-subscription")
+consumerInstance.poll()
     .then((result) => {
         // ...
     });
@@ -79,8 +82,7 @@ topicClient
 #### Commit read records
 
 ```javascript
-topicClient
-    .commit("my-example-subscription")
+consumerInstance.commit()
     .then((result) => {
         // ...
     });

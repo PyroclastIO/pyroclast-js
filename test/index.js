@@ -20,7 +20,7 @@ describe('PyroclastTopicClient', function() {
 
     it('uses default endpoint when none provided', function() {
         const c = new PyroclastTopicClient(Object.assign({}, config, {endpoint: null}));
-        expect(c.options.endpoint).to.equal('https://api.us-east-1.pyroclast.io');
+        expect(c.options.endpoint).to.equal('https://api.us-west-2.pyroclast.io');
     });
 
     it('uses region to set endpoint', function() {

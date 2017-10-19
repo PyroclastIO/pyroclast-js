@@ -8,11 +8,11 @@ describe('PyroclastTopicClient', function() {
         topicId: "atopic",
         endpoint: 'http://no.op'
     };
-    
+
     it('fails to construct when required options are not specified.', function() {
         expect(() => new PyroclastTopicClient({})).to.throwError();
     });
-    
+
     it('bootstraps a default fetch impl under Node', function() {
         const c = new PyroclastTopicClient(config);
         expect(c.fetchImpl).to.be.ok();
@@ -211,7 +211,7 @@ describe('PyroclastDeploymentClient', function() {
 });
 
 // Integration test, use with real credentials.
-describe('IhaveNoIdeaWhatIamDoing', function(){
+describe('IntegrationTest', function(){
     const topicClient = new PyroclastTopicClient({
         writeApiKey: "cc5409fc-1e59-44e8-b1e8-0701d0a204de",
         readApiKey:"3a6d9c33-86a7-4bb6-ad20-dd239fc93f94",

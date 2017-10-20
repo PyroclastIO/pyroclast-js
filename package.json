@@ -1,10 +1,10 @@
 {
   "name": "pyroclast",
-  "version": "0.1.8",
+  "version": "0.2.0",
   "description": "Browser + Node.js support for Pyroclast.",
   "main": "lib/pyroclast.js",
   "scripts": {
-    "test": "mocha --compilers js:babel-register",
+    "test": "mocha --require babel-register",
     "build": "babel src/pyroclast.js -o lib/pyroclast.js"
   },
   "author": "Distributed Masonry",

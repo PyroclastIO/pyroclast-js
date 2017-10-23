@@ -1,5 +1,12 @@
 var assert = require('assert')
 
+function renameKeys(obj, kmap) {
+  return Object.keys(obj).reduce((renamed, k) => {
+    renamed[kmap[k] || k] = obj[k];
+    return renamed;
+  }, {});
+}
+
 function defaultFetch() {
   if ('undefined' !== typeof process &&
     Object.prototype.toString.call(process) === '[object process]') {
@@ -78,6 +85,65 @@ function deployment(client, queryCriteria, path = '') {
 
 const alphanumeric = /^[\d\w-]+$/;
 
+export class PyroclastAdminClient extends BaseClient {
+  requiredOptions() {
+    return ['masterKey']
+  }
+
+  createTopic(topicName, {retentionBytes = 2147483648, retentionMs = 259200000} = {}){
+    return this.fetchImpl(`${this.options.endpoint}/v1/topics`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          name: topicName,
+          'retention-bytes': retentionBytes,
+          'retention-ms': retentionMs
+        }),
+        headers: {
+          'Authorization': this.options.masterKey,
+          'Content-Type': 'application/json'
+        },
+        credentials: this.credentialsMode
+      }).then((res) => {
+      if (res.status === 201) return res.json()
+        .then((tr) => {
+          var conformed = renameKeys(tr,{
+            'read-key': 'readApiKey',
+            'id': 'topicId',
+            'write-key': 'writeApiKey'});
+          return new PyroclastTopicClient(Object.assign({}, this.options, conformed))
+        });
+      handleResponseError(res)
+    })
+  }
+
+  getTopics(){
+    return this.fetchImpl(`${this.options.endpoint}/v1/topics`,
+      {
+        method: 'GET',
+        headers: {
+          'Authorization': this.options.masterKey,
+          'Content-Type': 'application/json'
+        },
+        credentials: this.credentialsMode
+      }).then((res) => {
+      if (res.status === 200) {
+        return res.json()
+          .then((topicList) => {
+            return topicList.map((topic) => {
+              var conformed = renameKeys(topic, {
+                'read-key': 'writeApiKey',
+                'id': 'topicId',
+                'write-key': 'readApiKey'
+              });
+              return new PyroclastTopicClient(Object.assign({}, this.options, conformed))
+            })
+          });
+      }
+      handleResponseError(res)
+    })
+  }
+}
 export class PyroclastTopicClient extends BaseClient {
   requiredOptions() {
     return ['topicId']

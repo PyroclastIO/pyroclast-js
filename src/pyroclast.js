@@ -1,4 +1,4 @@
-var assert = require('assert')
+import assert from 'assert';
 
 function defaultFetch() {
   if ('undefined' !== typeof process &&
@@ -55,24 +55,10 @@ function deployment(client, queryCriteria, path = '') {
     body: queryCriteria && JSON.stringify(queryCriteria),
     credentials: client.credentialsMode
   }).then((res) => {
-    let msg;
-    switch (res.status) {
-      case 200:
-        return res.json();
-      case 401:
-        msg = 'API key is not authorized to perform this action';
-        break;
-      case 404:
-        msg = 'Not found';
-        break;
-      default:
-        msg = res.statusText || 'unknown';
+    if (res.status === 200) {
+      return res.json();
     }
-
-    let err = new Error(msg);
-    err.status = res.status;
-    err.responseHeaders = res.headers;
-    throw err;
+    throw responseError(res);
   });
 }
 
@@ -80,167 +66,164 @@ const alphanumeric = /^[\d\w-]+$/;
 
 export class PyroclastTopicClient extends BaseClient {
   requiredOptions() {
-    return ['topicId']
+    return ['topicId'];
   }
 
   sendEvent(event) {
     assertKeys(this.options, ['writeApiKey']);
     assertKeys(event, ['value']);
-    return this.fetchImpl(`${this.options.endpoint}/v1/topics/${this.options.topicId}/produce`,
-      {
-        method: 'POST',
-        body: JSON.stringify(event),
-        headers: {
-          'Authorization': this.options.writeApiKey,
-          'Content-Type': 'application/json'
-        },
-        credentials: this.credentialsMode
-      }).then((res) => {
-      if (res.status === 200) return true;
-      handleResponseError(res)
-    })
+    return this.fetchImpl(`${this.options.endpoint}/v1/topics/${this.options.topicId}/produce`, {
+      method: 'POST',
+      body: JSON.stringify(event),
+      headers: {
+        'Authorization': this.options.writeApiKey,
+        'Content-Type': 'application/json'
+      },
+      credentials: this.credentialsMode
+    }).then((res) => {
+      if (res.status === 200) {
+        return true;
+      }
+      throw responseError(res);
+    });
   }
 
   sendEvents(events) {
     assertKeys(this.options, ['writeApiKey']);
     events.forEach((event) => assertKeys(event, ['value']));
-    return this.fetchImpl(`${this.options.endpoint}/v1/topics/${this.options.topicId}/bulk-produce`,
-      {
-        method: 'POST',
-        body: JSON.stringify(events),
-        headers: {
-          'Authorization': this.options.writeApiKey,
-          'Content-Type': 'application/json'
-        },
-        credentials: this.credentialsMode
-      }).then((res) => {
-      if (res.status === 200) return true;
-      handleResponseError(res)
-    })
+    return this.fetchImpl(`${this.options.endpoint}/v1/topics/${this.options.topicId}/bulk-produce`, {
+      method: 'POST',
+      body: JSON.stringify(events),
+      headers: {
+        'Authorization': this.options.writeApiKey,
+        'Content-Type': 'application/json'
+      },
+      credentials: this.credentialsMode
+    }).then((res) => {
+      if (res.status === 200) {
+        return true;
+      }
+      throw responseError(res);
+    });
   }
 
-  subscribe(consumerGroupName, {autoOffsetReset = 'earliest', partitions = "all"} = {}) {
+  subscribe(consumerGroupName, {autoOffsetReset = 'earliest', partitions = 'all'} = {}) {
     assertKeys(this.options, ['readApiKey']);
     if (!alphanumeric.test(consumerGroupName)) {
       throw new Error('Subscriber name must be a non-empty string of alphanumeric characters');
     }
-    return this.fetchImpl(`${this.options.endpoint}/v1/topics/${this.options.topicId}/consumers/${consumerGroupName}/subscribe`,
-      {
-        method: 'POST',
-        body: JSON.stringify({"auto.offset.reset": autoOffsetReset, partitions}),
-        headers: {
-          'Authorization': this.options.readApiKey,
-          'Content-Type': 'application/json'
-        },
-        credentials: this.credentialsMode
-      }).then((res) => {
+    return this.fetchImpl(`${this.options.endpoint}/v1/topics/${this.options.topicId}/consumers/${consumerGroupName}/subscribe`, {
+      method: 'POST',
+      body: JSON.stringify({'auto.offset.reset': autoOffsetReset, partitions}),
+      headers: {
+        'Authorization': this.options.readApiKey,
+        'Content-Type': 'application/json'
+      },
+      credentials: this.credentialsMode
+    }).then((res) => {
       if (res.status === 201) {
-        return res.json().then(
-          (json) => {
-            return new PyroclastConsumerInstance(
-              Object.assign({}, this.options, {
-                consumerGroupId: json['group-id'],
-                consumerInstanceId: json['consumer-instance-id']
-              }))
-          }
-        )
+        let json = res.json();
+        return new PyroclastConsumerInstance(
+          Object.assign({}, this.options, {
+            consumerGroupId: json['group-id'],
+            consumerInstanceId: json['consumer-instance-id']
+          })
+        );
       }
-      handleResponseError(res)
-    })
+      throw responseError(res);
+    });
   }
-
 }
 
-export class PyroclastConsumerInstance extends PyroclastTopicClient {
+export class PyroclastConsumerInstance extends BaseClient {
   requiredOptions() {
-    return ['topicId', 'consumerGroupId', "consumerInstanceId"]
+    return ['topicId', 'consumerGroupId', 'consumerInstanceId']
   }
 
   poll() {
     assertKeys(this.options, ['readApiKey']);
-    return this.fetchImpl(`${this.options.endpoint}/v1/topics/${this.options.topicId}/consumers/${this.options.consumerGroupId}/instances/${this.options.consumerInstanceId}/poll`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': this.options.readApiKey,
-          'Content-Type': 'application/json'
-        },
-        credentials: this.credentialsMode
-      }).then((res) => {
+    return this.fetchImpl(`${this.options.endpoint}/v1/topics/${this.options.topicId}/consumers/${this.options.consumerGroupId}/instances/${this.options.consumerInstanceId}/poll`, {
+      method: 'POST',
+      headers: {
+        'Authorization': this.options.readApiKey,
+        'Content-Type': 'application/json'
+      },
+      credentials: this.credentialsMode
+    }).then((res) => {
       if (res.status === 200) {
-        return res.json()
+        return res.json();
       }
-      handleResponseError(res)
-    })
+      throw responseError(res);
+    });
   }
 
   commit() {
     assertKeys(this.options, ['writeApiKey']);
-    return this.fetchImpl(`${this.options.endpoint}/v1/topics/${this.options.topicId}/consumers/${this.options.consumerGroupId}/instances/${this.options.consumerInstanceId}/commit`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': this.options.readApiKey,
-          'Content-Type': 'application/json'
-        },
-        credentials: this.credentialsMode
-      }).then((res) => {
+    return this.fetchImpl(`${this.options.endpoint}/v1/topics/${this.options.topicId}/consumers/${this.options.consumerGroupId}/instances/${this.options.consumerInstanceId}/commit`, {
+      method: 'POST',
+      headers: {
+        'Authorization': this.options.readApiKey,
+        'Content-Type': 'application/json'
+      },
+      credentials: this.credentialsMode
+    }).then((res) => {
       if (res.status === 200) {
-        return true
+        return true;
       }
-      handleResponseError(res)
-    })
+      throw responseError(res);
+    });
   }
 
   _simpleSeek(direction) {
     assertKeys(this.options, ['writeApiKey']);
-    return this.fetchImpl(`${this.options.endpoint}/v1/topics/${this.options.topicId}/consumers/${this.options.consumerGroupId}/instances/${this.options.consumerInstanceId}/seek/${direction}`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': this.options.readApiKey,
-          'Content-Type': 'application/json'
-        },
-        credentials: this.credentialsMode
-      }).then((res) => {
+    return this.fetchImpl(`${this.options.endpoint}/v1/topics/${this.options.topicId}/consumers/${this.options.consumerGroupId}/instances/${this.options.consumerInstanceId}/seek/${direction}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': this.options.readApiKey,
+        'Content-Type': 'application/json'
+      },
+      credentials: this.credentialsMode
+    }).then((res) => {
       if (res.status === 200) {
-        return true
+        return true;
       }
-      handleResponseError(res)
-    })
+      throw responseError(res);
+    });
   }
 
   seekBeginning() {
-    return this._simpleSeek("beginning");
+    return this._simpleSeek('beginning');
   }
 
   seekEnd() {
-    return this._simpleSeek("end");
+    return this._simpleSeek('end');
   }
 
   seek(partitionPositions) {
     assertKeys(this.options, ['writeApiKey']);
-    partitionPositions.forEach(
-      (p) => {
-        assertKeys(p, ['partition']);
-        assert((p.hasOwnProperty('offset') || p.hasOwnProperty('timestamp')), "partitionPosition entry must contain either offset or timestamp");
-      });
+    partitionPositions.forEach((p) => {
+      assertKeys(p, ['partition']);
+      assert(
+        ['offset', 'timestamp'].some((k) => p.hasOwnProperty(k)),
+        'partitionPosition entry must contain either offset or timestamp'
+      );
+    });
 
-    return this.fetchImpl(`${this.options.endpoint}/v1/topics/${this.options.topicId}/consumers/${this.options.consumerGroupId}/instances/${this.options.consumerInstanceId}/seek`,
-      {
-        method: 'POST',
-        body: JSON.stringify(partitionPositions),
-        headers: {
-          'Authorization': this.options.readApiKey,
-          'Content-Type': 'application/json'
-        },
-        credentials: this.credentialsMode
-      }).then((res) => {
+    return this.fetchImpl(`${this.options.endpoint}/v1/topics/${this.options.topicId}/consumers/${this.options.consumerGroupId}/instances/${this.options.consumerInstanceId}/seek`, {
+      method: 'POST',
+      body: JSON.stringify(partitionPositions),
+      headers: {
+        'Authorization': this.options.readApiKey,
+        'Content-Type': 'application/json'
+      },
+      credentials: this.credentialsMode
+    }).then((res) => {
       if (res.status === 200) {
-        return true
+        return true;
       }
-      handleResponseError(res)
-    })
+
+      throw responseError(res);
+    });
   }
 }
 
@@ -258,7 +241,7 @@ export class PyroclastDeploymentClient extends BaseClient {
   }
 }
 
-function handleResponseError(res) {
+function responseError(res) {
   let msg;
   switch (res.status) {
     case 400:
@@ -277,5 +260,5 @@ function handleResponseError(res) {
   let err = new Error(msg);
   err.status = res.status;
   err.responseHeaders = res.headers;
-  throw err;
+  return err;
 }

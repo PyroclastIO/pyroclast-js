@@ -172,11 +172,17 @@ export class PyroclastTopicClient extends BaseClient {
     });
   }
 
-  subscribe(consumerGroupName, {autoOffsetReset = 'earliest', partitions = 'all'} = {}) {
+  subscribe(consumerGroupName, opts={}) {
     assertKeys(this.options, ['readApiKey']);
     if (!alphanumeric.test(consumerGroupName)) {
       throw new Error('Subscriber name must be a non-empty string of alphanumeric characters');
     }
+
+    let {autoOffsetReset, partitions} = Object.assign({
+      autoOffsetReset: 'earliest',
+      partitions: 'all'
+    }, opts);
+
     return this.fetchImpl(`${this.options.endpoint}/v1/topics/${this.options.topicId}/consumers/${consumerGroupName}/subscribe`, {
       method: 'POST',
       body: JSON.stringify({'auto.offset.reset': autoOffsetReset, partitions}),
@@ -187,13 +193,14 @@ export class PyroclastTopicClient extends BaseClient {
       credentials: this.credentialsMode
     }).then((res) => {
       if (res.status === 201) {
-        let json = res.json();
-        return new PyroclastConsumerInstance(
-          Object.assign({}, this.options, {
-            consumerGroupId: json['group-id'],
-            consumerInstanceId: json['consumer-instance-id']
-          })
-        );
+        return res.json().then((json) => {
+          return new PyroclastConsumerInstance(
+            Object.assign({}, this.options, {
+              consumerGroupId: json['group-id'],
+              consumerInstanceId: json['consumer-instance-id']
+            })
+          );
+        });
       }
       throw responseError(res);
     });

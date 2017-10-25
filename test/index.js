@@ -1,5 +1,10 @@
 import expect from 'expect.js';
-import {PyroclastTopicClient, PyroclastDeploymentClient, PyroclastConsumerInstance} from '../src/pyroclast';
+import {
+  PyroclastTopicClient,
+  PyroclastDeploymentClient,
+  PyroclastConsumerInstance,
+  PyroclastAdminClient
+} from '../src/pyroclast';
 
 describe('PyroclastTopicClient', function() {
     const config = {
@@ -212,73 +217,98 @@ describe('PyroclastDeploymentClient', function() {
 
 // Integration test, use with real credentials.
 describe.skip('IntegrationTest', function(){
-    const topicClient = new PyroclastTopicClient({
-        writeApiKey: "cc5409fc-1e59-44e8-b1e8-0701d0a204de",
-        readApiKey:"3a6d9c33-86a7-4bb6-ad20-dd239fc93f94",
-        topicId: "topic-7d5d4716-1d91-4392-9126-053d5f76e2e7",
-        endpoint: "http://localhost:10556"
+  const topicName = Math.random().toString(36).substring(7);
+  const adminClient = new PyroclastAdminClient(
+    {
+      masterKey: 'user1',
+      endpoint: "http://localhost:10556"
     });
-    it('fails to construct when the required options are not specified', function(){
-       expect(() => new PyroclastTopicClient({})).to.throwError();
-    });
-
-    it('bootstraps a default fetch impl under Node', function() {
-        expect(topicClient.fetchImpl).to.be.ok();
-    });
-    it('We can send an event and multiple batch events', function(done) {
-        topicClient.sendEvent({"value": "foo"}).then((res) => {
-            expect(res).to.be.ok();
+  it('can create a new topic', function(done){
+    adminClient.createTopic(topicName)
+      .then((newTopicClient) => {
+        newTopicClient.sendEvent({"value": {"foo": "bar"}}).then((res) => {
+          expect(res).to.be.ok();
         });
-        topicClient.sendEvents([{"value": "foo"}]).then((res) => {
-            expect(res).to.be.ok();
-        })
-            .then(done())
-            .catch(done);
+        done();
+      })
+      .catch(done);
+  });
+  it('can list existing topics', function(done){
+    adminClient.getTopics()
+      .then((r) => {
+        expect(r).to.be.ok();
+        done();
+      })
+      .catch(done);
+  });
+
+  const topicClient = new PyroclastTopicClient({
+    writeApiKey: "5c293bff-4320-46dd-8288-b40e5cc6f785",
+    readApiKey:"308220d9-1849-4bc7-98e4-37819d4f90ef",
+    topicId: "topic-0549b145-edec-4360-9c73-84b0a1b77ede",
+    endpoint: "http://localhost:10556"
+  });
+  it('fails to construct when the required options are not specified', function(){
+    expect(() => new PyroclastTopicClient({})).to.throwError();
+  });
+
+  it('bootstraps a default fetch impl under Node', function() {
+    expect(topicClient.fetchImpl).to.be.ok();
+  });
+  it('We can send an event and multiple batch events', function(done) {
+    topicClient.sendEvent({"value": "foo"}).then((res) => {
+      expect(res).to.be.ok();
+    });
+    topicClient.sendEvents([{"value": "foo"}]).then((res) => {
+      expect(res).to.be.ok();
     })
-    it('We can subscribe to a topic and get back a list of records', function(done){
-        topicClient.subscribe("geee").then(
-            (consumerInstance) => {
-                consumerInstance.poll().then(
-                    (records) => {
-                        expect(records).to.be.an('array');
-                        expect(records).to.not.be.empty;
-                    }
-                ).catch(done);
-                consumerInstance.commit().then(
-                    (status) => {
-                        expect(status).to.be.ok();
-                    }
-                ).catch(done);
-                consumerInstance.poll().then(
-                    (records) => {
-                        expect(records).to.be.an('array');
-                        expect(records).to.be.empty;
-                    }
-                ).catch(done);
-                consumerInstance.seekBeginning().then(
-                    (status) => {
-                        expect(status).to.be.ok();
-                    }
-                ).catch(done);
-                consumerInstance.poll().then(
-                    (records) => {
-                        expect(records).to.be.an('array');
-                        expect(records).to.not.be.empty;
-                    }
-                ).catch(done);
-                consumerInstance.seek([{partition: 0, offset: 0},
-                                       {partition: 1, offset: 0}]).then(
-                    (status) => {
-                        expect(status).to.be.ok();
-                    }
-                ).catch(done);
-                consumerInstance.poll().then(
-                    (records) => {
-                        expect(records).to.be.an('array');
-                        expect(records).to.not.be.empty;
-                    }
-                ).then(done()).catch(done);
-            }
-        )
-    })
+      .then(done())
+      .catch(done);
+  })
+  it('We can subscribe to a topic and get back a list of records', function(done){
+    topicClient.subscribe("geee").then(
+      (consumerInstance) => {
+        consumerInstance.poll().then(
+          (records) => {
+            expect(records).to.be.an('array');
+            expect(records).to.not.be.empty;
+          }
+        ).catch(done);
+        consumerInstance.commit().then(
+          (status) => {
+            expect(status).to.be.ok();
+          }
+        ).catch(done);
+        consumerInstance.poll().then(
+          (records) => {
+            expect(records).to.be.an('array');
+            expect(records).to.be.empty;
+          }
+        ).catch(done);
+        consumerInstance.seekBeginning().then(
+          (status) => {
+            expect(status).to.be.ok();
+          }
+        ).catch(done);
+        consumerInstance.poll().then(
+          (records) => {
+            expect(records).to.be.an('array');
+            expect(records).to.not.be.empty;
+          }
+        ).catch(done);
+        consumerInstance.seek([{partition: 0, offset: 0},
+                               {partition: 1, offset: 0}]).then(
+                                 (status) => {
+                                   expect(status).to.be.ok();
+                                 }
+                               ).catch(done);
+        consumerInstance.poll().then(
+          (records) => {
+            expect(records).to.be.an('array');
+            expect(records).to.not.be.empty;
+          }
+        ).then(() => done()).catch(done);
+      }
+    )
+  })
 });

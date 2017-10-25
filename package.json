@@ -3,6 +3,7 @@
   "version": "0.2.0",
   "description": "Browser + Node.js support for Pyroclast.",
   "main": "lib/pyroclast.js",
+  "module": "src/pyroclast.js",
   "scripts": {
     "test": "mocha --require babel-register",
     "build": "babel src/pyroclast.js -o lib/pyroclast.js"

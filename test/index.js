@@ -211,7 +211,7 @@ describe('PyroclastDeploymentClient', function() {
 });
 
 // Integration test, use with real credentials.
-describe('IntegrationTest', function(){
+describe.skip('IntegrationTest', function(){
     const topicClient = new PyroclastTopicClient({
         writeApiKey: "cc5409fc-1e59-44e8-b1e8-0701d0a204de",
         readApiKey:"3a6d9c33-86a7-4bb6-ad20-dd239fc93f94",

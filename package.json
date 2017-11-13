@@ -1,6 +1,6 @@
 {
   "name": "pyroclast",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Browser + Node.js support for Pyroclast.",
   "main": "lib/pyroclast.js",
   "module": "src/pyroclast.js",
@@ -15,7 +15,7 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "babel-cli": "^6.24.1",
+    "babel-cli": "^6.26.0",
     "babel-core": "^6.24.1",
     "babel-preset-env": "^1.5.0",
     "babel-register": "^6.24.1",

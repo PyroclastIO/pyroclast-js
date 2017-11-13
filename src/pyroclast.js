@@ -230,7 +230,7 @@ export class PyroclastConsumerInstance extends BaseClient {
   }
 
   commit() {
-    assertKeys(this.options, ['writeApiKey']);
+    assertKeys(this.options, ['readApiKey']);
     return this.fetchImpl(`${this.options.endpoint}/v1/topics/${this.options.topicId}/consumers/${this.options.consumerGroupId}/instances/${this.options.consumerInstanceId}/commit`, {
       method: 'POST',
       headers: {
@@ -247,7 +247,7 @@ export class PyroclastConsumerInstance extends BaseClient {
   }
 
   _simpleSeek(direction) {
-    assertKeys(this.options, ['writeApiKey']);
+    assertKeys(this.options, ['readApiKey']);
     return this.fetchImpl(`${this.options.endpoint}/v1/topics/${this.options.topicId}/consumers/${this.options.consumerGroupId}/instances/${this.options.consumerInstanceId}/seek/${direction}`, {
       method: 'POST',
       headers: {
@@ -272,7 +272,7 @@ export class PyroclastConsumerInstance extends BaseClient {
   }
 
   seek(partitionPositions) {
-    assertKeys(this.options, ['writeApiKey']);
+    assertKeys(this.options, ['readApiKey']);
     partitionPositions.forEach((p) => {
       assertKeys(p, ['partition']);
       assert(

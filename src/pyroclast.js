@@ -117,9 +117,9 @@ export class PyroclastAdminClient extends BaseClient {
           .then((topicList) => {
             return topicList.map((topic) => {
               let conformed = renameKeys(topic, {
-                'read-key': 'writeApiKey',
+                'read-key': 'readApiKey',
                 'id': 'topicId',
-                'write-key': 'readApiKey'
+                'write-key': 'writeApiKey'
               });
               return new PyroclastTopicClient(Object.assign({}, this.options, conformed));
             })

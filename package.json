@@ -1,6 +1,6 @@
 {
   "name": "pyroclast",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "description": "Browser + Node.js support for Pyroclast.",
   "main": "lib/pyroclast.js",
   "module": "src/pyroclast.js",
